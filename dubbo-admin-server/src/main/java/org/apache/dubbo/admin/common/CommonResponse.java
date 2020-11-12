@@ -25,7 +25,7 @@ public class CommonResponse extends HashMap<String, Object> {
 
     private static final String MESSAGE = "message";
 
-    private static final String SUCCESS = "success";
+//    private static final String SUCCESS = "success";
 
     private static final String DATA = "data";
 
@@ -33,9 +33,11 @@ public class CommonResponse extends HashMap<String, Object> {
 
     private static final String EMPTY = "";
 
-    public boolean isSuccess() {
-        return get(SUCCESS) != null && (Boolean) get(SUCCESS);
-    }
+    private static final String CODE = "code";
+
+//    public boolean isSuccess() {
+//        return get(SUCCESS) != null && (Boolean) get(SUCCESS);
+//    }
 
     public String getMessage() {
         if (get(MESSAGE) != null) {
@@ -46,22 +48,24 @@ public class CommonResponse extends HashMap<String, Object> {
 
     private CommonResponse() {
         super();
-        this.put(SUCCESS, false);
+//        this.put(SUCCESS, false);
     }
 
     public CommonResponse success() {
-        this.put(SUCCESS, true);
+//        this.put(SUCCESS, true);
+        this.put(CODE, 0);
         return this;
     }
 
     public CommonResponse success(String message) {
-        this.put(SUCCESS, true);
+//        this.put(SUCCESS, true);
         this.put(MESSAGE, message);
         return this;
     }
 
     public CommonResponse fail(String message) {
-        this.put(SUCCESS, false);
+//        this.put(SUCCESS, false);
+        this.put(CODE, 1);
         this.put(MESSAGE, message);
         return this;
     }

@@ -261,9 +261,9 @@
           if (v && v.length >= 4) {
             this.searchLoading = true
             if (this.selected === 0) {
-              this.typeAhead = this.$store.getters.getServiceItems(v)
+              this.typeAhead = this.$store.getters.getMyServiceItems(v)
             } else if (this.selected === 1) {
-              this.typeAhead = this.$store.getters.getAppItems(v)
+              this.typeAhead = this.$store.getters.getMyAppItems(v)
             }
             this.searchLoading = false
             this.timerID = null
@@ -410,7 +410,7 @@
             this.warnStatus.id = itemId
             break
           case 'delete':
-            this.openWarn('warnDeleteDynamicConfig', 'service: ' + item.service)
+            this.openWarn(' Are you sure to Delete Dynamic Config', 'service: ' + item.service)
             this.warnStatus.operation = 'delete'
             this.warnStatus.id = itemId
         }
@@ -497,8 +497,8 @@
     mounted: function () {
       this.setAppHeaders()
       this.setServiceHeaders()
-      this.$store.dispatch('loadServiceItems')
-      this.$store.dispatch('loadAppItems')
+      this.$store.dispatch('loadMyServiceItems')
+      this.$store.dispatch('loadMyAppItems')
       this.ruleText = this.template
       let query = this.$route.query
       let filter = null

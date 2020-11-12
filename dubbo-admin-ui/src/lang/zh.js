@@ -29,6 +29,7 @@ export default {
   providers: '提供者',
   consumers: '消费者',
   metrics: '统计',
+  monitor: 'Monitor',
   group: '组',
   version: '版本',
   app: '应用',
@@ -42,6 +43,7 @@ export default {
   serialization: '序列化',
   appName: '应用名',
   serviceName: '服务名',
+  registry: '注册中心',
   operation: '操作',
   searchResult: '查询结果',
   search: '搜索',
@@ -127,12 +129,6 @@ export default {
   scope: '范围',
   name: '名称',
   warnDeleteConfig: ' 是否要删除Dubbo配置: ',
-  warnDeleteRouteRule: '是否要删除路由规则',
-  warnDeleteDynamicConfig: '是否要删除动态配置',
-  warnDeleteBalancing: '是否要删除负载均衡规则',
-  warnDeleteAccessControl: '是否要删除黑白名单',
-  warnDeleteTagRule: '是否要删除标签路由',
-  warnDeleteWeightAdjust: '是否要删除权重规则',
   configNameHint: '配置所属的应用名, global 表示全局配置',
   configContent: '配置内容',
   testMethod: '测试方法',
@@ -153,5 +149,16 @@ export default {
   methods: '方法列表',
   testModule: {
     searchServiceHint: '服务ID, org.apache.dubbo.demo.api.DemoService, 使用 * 进行模糊查找, 按回车键查询'
-  }
+  },
+  detailInfo: '详细信息',
+  fullUrl: '服务地址',
+  side: '所属端',
+  pid: '进程号',
+  dubbo: 'Dubbo版本',
+  timestamp: '时间戳',
+  retries: '重试次数',
+  username: 'Owner',
+  check: '检查',
+  router: '路由',
+  status: '状态'
 }

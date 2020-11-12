@@ -22,7 +22,10 @@
     dark
     app
   >
-    <v-toolbar-side-icon @click.stop="handleDrawerToggle"></v-toolbar-side-icon>
+    <v-toolbar-side-icon
+      @click.stop="handleDrawerToggle"
+      v-if="showDrawer"
+    ></v-toolbar-side-icon>
     <v-text-field
       flat
       hide-details
@@ -32,6 +35,7 @@
       class="hidden-sm-and-down"
       v-model="global"
       @keyup.enter="submit"
+      v-if="showSearchField"
     >
     </v-text-field>
 
@@ -73,7 +77,7 @@
     </v-menu>
 
     <!--login user info-->
-    <v-menu offset-y origin="center center" :nudge-bottom="10" transition="scale-transition" v-if="false">
+    <v-menu offset-y origin="center center" :nudge-bottom="10" transition="scale-transition" v-if="isLogin()">
       <v-btn icon large flat slot="activator">
         <v-avatar size="30px">
           <img src="@/assets/avatar.png" alt="Logined User" />
@@ -94,8 +98,19 @@
 </template>
 <script>
   import Util from '@/util'
+  import Cookies from 'js-cookie'
   export default {
     name: 'toolbar',
+    props: {
+      showDrawer: {
+        type: Boolean,
+        default: true
+      },
+      showSearchField: {
+        type: Boolean,
+        default: true
+      }
+    },
     data: () => ({
       selectedLang: '',
       global: '',
@@ -104,28 +119,30 @@
         'English'
       ],
       items: [
-        {
-          icon: 'account_circle',
-          href: '#',
-          title: 'Profile',
-          click: (e) => {
-            console.log(e)
-          }
-        },
-        {
-          icon: 'settings',
-          href: '#',
-          title: 'Settings',
-          click: (e) => {
-            console.log(e)
-          }
-        },
+        // {
+        //   icon: 'account_circle',
+        //   href: '#',
+        //   title: 'Profile',
+        //   click: (e) => {
+        //     console.log(e)
+        //   }
+        // },
+        // {
+        //   icon: 'settings',
+        //   href: '#',
+        //   title: 'Settings',
+        //   click: (e) => {
+        //     console.log(e)
+        //   }
+        // },
         {
           icon: 'fullscreen_exit',
           href: '#',
           title: 'Logout',
-          click: (e) => {
-            window.getApp.$emit('APP_LOGOUT')
+          click: () => {
+            // window.getApp.$emit('APP_LOGOUT')
+            Cookies.remove('accessToken')
+            window.location.href = '#/login'
           }
         }
       ]
@@ -159,6 +176,13 @@
       },
       handleFullScreen () {
         Util.toggleFullScreen()
+      },
+      isLogin () {
+        let cookie = Cookies.get('accessToken')
+        if (cookie === undefined) {
+          return false
+        }
+        return true
       }
     },
     mounted: function () {

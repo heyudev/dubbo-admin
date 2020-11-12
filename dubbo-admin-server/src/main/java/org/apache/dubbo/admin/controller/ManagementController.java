@@ -38,72 +38,73 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+@Deprecated
 @RestController
-@RequestMapping("/api/{env}/manage")
+@RequestMapping("/{env}/manage")
 public class ManagementController {
 
-    private final ManagementService managementService;
-    private final ProviderService providerService;
-    private static Pattern CLASS_NAME_PATTERN = Pattern.compile("([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*");
-
-
-    @Autowired
-    public ManagementController(ManagementService managementService, ProviderService providerService) {
-        this.managementService = managementService;
-        this.providerService = providerService;
-    }
-
-    @RequestMapping(value ="/config", method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.CREATED)
-    public boolean createConfig(@RequestBody ConfigDTO config, @PathVariable String env) {
-        managementService.setConfig(config);
-        return true;
-    }
-
-    @RequestMapping(value = "/config/{key}", method = RequestMethod.PUT)
-    public boolean updateConfig(@PathVariable String key, @RequestBody ConfigDTO configDTO, @PathVariable String env) {
-        if (key == null) {
-            throw new ParamValidationException("Unknown ID!");
-        }
-        String exitConfig = managementService.getConfig(key);
-        if (exitConfig == null) {
-            throw new ResourceNotFoundException("Unknown ID!"); }
-        return managementService.updateConfig(configDTO);
-    }
-
-    @RequestMapping(value = "/config/{key}", method = RequestMethod.GET)
-    public List<ConfigDTO> getConfig(@PathVariable String key, @PathVariable String env) {
-        Set<String> query = new HashSet<>();
-        List<ConfigDTO> configDTOs = new ArrayList<>();
-        if (key.equals(Constants.ANY_VALUE)) {
-            query = providerService.findApplications();
-            query.add(Constants.GLOBAL_CONFIG);
-        } else {
-            query.add(key);
-        }
-        for (String q : query) {
-            String config = managementService.getConfig(q);
-            if (config == null) {
-                continue;
-            }
-            ConfigDTO configDTO = new ConfigDTO();
-            configDTO.setKey(q);
-            configDTO.setConfig(config);
-            configDTO.setPath(managementService.getConfigPath(q));
-            if (Constants.GLOBAL_CONFIG.equals(q)) {
-                configDTO.setScope(Constants.GLOBAL_CONFIG);
-            } else if(CLASS_NAME_PATTERN.matcher(q).matches()){
-                configDTO.setScope(Constants.SERVICE);
-            } else {
-                configDTO.setScope(Constants.APPLICATION);
-            }
-            configDTOs.add(configDTO);
-        }
-        return configDTOs;
-    }
-
-    @RequestMapping(value = "/config/{key}", method = RequestMethod.DELETE)
-    public boolean deleteConfig(@PathVariable String key, @PathVariable String env) {
-        return managementService.deleteConfig(key);
-    }
+//    private final ManagementService managementService;
+//    private final ProviderService providerService;
+//    private static Pattern CLASS_NAME_PATTERN = Pattern.compile("([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*");
+//
+//
+//    @Autowired
+//    public ManagementController(ManagementService managementService, ProviderService providerService) {
+//        this.managementService = managementService;
+//        this.providerService = providerService;
+//    }
+//
+//    @RequestMapping(value ="/config", method = RequestMethod.POST)
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public boolean createConfig(@RequestBody ConfigDTO config, @PathVariable String env) {
+//        managementService.setConfig(config);
+//        return true;
+//    }
+//
+//    @RequestMapping(value = "/config/{key}", method = RequestMethod.PUT)
+//    public boolean updateConfig(@PathVariable String key, @RequestBody ConfigDTO configDTO, @PathVariable String env) {
+//        if (key == null) {
+//            throw new ParamValidationException("Unknown ID!");
+//        }
+//        String exitConfig = managementService.getConfig(key);
+//        if (exitConfig == null) {
+//            throw new ResourceNotFoundException("Unknown ID!"); }
+//        return managementService.updateConfig(configDTO);
+//    }
+//
+//    @RequestMapping(value = "/config/{key}", method = RequestMethod.GET)
+//    public List<ConfigDTO> getConfig(@PathVariable String key, @PathVariable String env) {
+//        Set<String> query = new HashSet<>();
+//        List<ConfigDTO> configDTOs = new ArrayList<>();
+//        if (key.equals(Constants.ANY_VALUE)) {
+//            query = providerService.findApplications();
+//            query.add(Constants.GLOBAL_CONFIG);
+//        } else {
+//            query.add(key);
+//        }
+//        for (String q : query) {
+//            String config = managementService.getConfig(q);
+//            if (config == null) {
+//                continue;
+//            }
+//            ConfigDTO configDTO = new ConfigDTO();
+//            configDTO.setKey(q);
+//            configDTO.setConfig(config);
+//            configDTO.setPath(managementService.getConfigPath(q));
+//            if (Constants.GLOBAL_CONFIG.equals(q)) {
+//                configDTO.setScope(Constants.GLOBAL_CONFIG);
+//            } else if(CLASS_NAME_PATTERN.matcher(q).matches()){
+//                configDTO.setScope(Constants.SERVICE);
+//            } else {
+//                configDTO.setScope(Constants.APPLICATION);
+//            }
+//            configDTOs.add(configDTO);
+//        }
+//        return configDTOs;
+//    }
+//
+//    @RequestMapping(value = "/config/{key}", method = RequestMethod.DELETE)
+//    public boolean deleteConfig(@PathVariable String key, @PathVariable String env) {
+//        return managementService.deleteConfig(key);
+//    }
 }

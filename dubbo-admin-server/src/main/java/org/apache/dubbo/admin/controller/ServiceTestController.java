@@ -38,8 +38,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 @RestController
-@RequestMapping("/api/{env}/test")
+@RequestMapping("/{env}/test")
 public class ServiceTestController {
     private final GenericServiceImpl genericService;
     private final ProviderService providerService;

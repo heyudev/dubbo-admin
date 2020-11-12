@@ -17,33 +17,51 @@
 package org.apache.dubbo.admin.service;
 
 import org.apache.dubbo.admin.model.domain.Provider;
+import org.apache.dubbo.admin.model.dto.ProviderDTO;
 import org.apache.dubbo.admin.model.dto.ServiceDTO;
 import org.apache.dubbo.metadata.identifier.MetadataIdentifier;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * ProviderService
- *
  */
 public interface ProviderService {
 
     void create(Provider provider);
 
-//    void enableProvider(String id);
+    /**
+     * 启用服务 dubbo2.6
+     *
+     * @param id
+     * @param registryAddress
+     */
+    void enableProvider(String id, String registryAddress);
 
-//    void disableProvider(String id);
+    /**
+     * 禁用服务 dubbo2.6
+     *
+     * @param id
+     * @param registryAddress
+     */
+    void disableProvider(String id, String registryAddress);
 
-//    void doublingProvider(String id);
+    /**
+     * 设置权重
+     *
+     * @param id
+     * @param weight
+     * @param registryAddress
+     */
+    void adjustWeight(String id, Integer weight, String registryAddress);
 
-//    void halvingProvider(String id);
+    void deleteStaticProvider(String id, String registryAddress);
 
-    void deleteStaticProvider(String id);
+    void updateProvider(Provider provider, String registryAddress);
 
-    void updateProvider(Provider provider);
-
-    Provider findProvider(String id);
+    Provider findProvider(String id, String registryAddress);
 
     String getProviderMetaData(MetadataIdentifier providerIdentifier);
 
@@ -52,19 +70,34 @@ public interface ProviderService {
      *
      * @return list of all provider's service name
      */
-    Set<String> findServices();
+    Set<String> findServices(String registryAddress);
 
-    String findServiceVersion(String serviceName, String application);
+    /**
+     * 获取有权限的所有的ServiceName
+     *
+     * @return
+     */
+    Set<String> findMyServices(Set<String> applications, String registryAddress);
 
-    String findVersionInApplication(String application);
+    /**
+     * 获取所有的ServiceName 带注册中心地址
+     *
+     * @return
+     */
+    Set<String> findServicesWithRegistry(String registryAddress);
 
-    List<String> findAddresses();
 
-    List<String> findAddressesByApplication(String application);
+    String findServiceVersion(String serviceName, String application, String registryAddress);
 
-    List<String> findAddressesByService(String serviceName);
+    String findVersionInApplication(String application, String registryAddress);
 
-    List<String> findApplicationsByServiceName(String serviceName);
+    List<String> findAddresses(String registryAddress);
+
+    List<String> findAddressesByApplication(String application, String registryAddress);
+
+    List<String> findAddressesByService(String serviceName, String registryAddress);
+
+    List<String> findApplicationsByServiceName(String serviceName, String registryAddress);
 
     /**
      * Get provider list with specific service name.
@@ -72,11 +105,45 @@ public interface ProviderService {
      * @param serviceName specific service name, cannot be fuzzy string
      * @return list of provider object
      */
-    List<Provider> findByService(String serviceName);
+    List<Provider> findByService(String serviceName, String registryAddress);
 
-    List<Provider> findByAppandService(String app, String serviceName);
+    /**
+     *
+     * @param serviceName
+     * @param registryAddress
+     * @return
+     */
+    List<Provider> findByService2(String serviceName, String registryAddress);
 
-    List<Provider> findAll();
+    /**
+     * Get provider list with specific service name and registry
+     *
+     * @param serviceName
+     * @param registry
+     * @return
+     */
+    List<Provider> findByServiceAndRegistry(String serviceName, String registry);
+
+    /**
+     * Get provider list with specific service name without registry
+     *
+     * @param serviceName
+     * @return
+     */
+    List<Provider> findByServiceWithoutRegistry(String serviceName, String registryAddress);
+
+    List<Provider> findByAppandService(String app, String serviceName, String registryAddress);
+
+    /**
+     * 测试
+     * @param service
+     * @param registryAddress
+     * @return
+     */
+    @Deprecated
+    String test(String service, String registryAddress);
+
+    List<Provider> findAll(String registryAddress);
 
     /**
      * Get provider list with specific ip address.
@@ -84,11 +151,11 @@ public interface ProviderService {
      * @param providerAddress provider's ip address
      * @return list of provider object
      */
-    List<Provider> findByAddress(String providerAddress);
+    List<Provider> findByAddress(String providerAddress, String registryAddress);
 
-    List<String> findServicesByAddress(String providerAddress);
+    List<String> findServicesByAddress(String providerAddress, String registryAddress);
 
-    Set<String> findApplications();
+    Set<String> findApplications(String registryAddress);
 
     /**
      * Get provider list with specific application name.
@@ -96,17 +163,26 @@ public interface ProviderService {
      * @param application specific application name
      * @return list of provider object
      */
-    List<Provider> findByApplication(String application);
+    List<Provider> findByApplication(String application, String registryAddress);
 
-    List<String> findServicesByApplication(String application);
+    List<String> findServicesByApplication(String application, String registryAddress);
 
-    List<String> findMethodsByService(String serviceName);
+    List<String> findMethodsByService(String serviceName, String registryAddress);
 
-    Provider findByServiceAndAddress(String service, String address);
+    Provider findByServiceAndAddress(String service, String address, String registryAddress);
+
+    /**
+     * 根据服务和md5获取详细信息
+     *
+     * @param service 服务 group/service:version@registry
+     * @param id      md5
+     * @return
+     */
+    ProviderDTO findByServiceAndId(String service, String id, String registryAddress);
 
     /**
      * Get a set of service data object.
-     *
+     * <p>
      * ServiceDTO object contains base information include
      * service name , application, group and version.
      *
@@ -115,6 +191,15 @@ public interface ProviderService {
      * @param env     {@code String}the environment of front end
      * @return a set of services for fore-end page
      */
-    Set<ServiceDTO> getServiceDTOS(String pattern, String filter, String env);
+    @Deprecated
+    Set<ServiceDTO> getServiceDTOS(String pattern, String filter, String env, String registryAddress);
 
+    /**
+     * @param pattern
+     * @param filter
+     * @param env
+     * @param registryAddress
+     * @return
+     */
+    Set<ServiceDTO> getServiceDTOS2(String pattern, String filter, String env, String registryAddress);
 }

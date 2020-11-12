@@ -16,8 +16,8 @@
   -->
 
 <template>
-  <v-container grid-list-xl fluid >
-    <v-layout row wrap >
+  <v-container grid-list-xl fluid>
+    <v-layout row wrap>
       <v-flex sm12>
         <h3>{{$t('basicInfo')}}</h3>
       </v-flex>
@@ -26,9 +26,9 @@
           :items="basic"
           class="elevation-1"
           hide-actions
-          hide-headers >
+          hide-headers>
           <template slot="items" slot-scope="props">
-            <td>{{$t(props.item.name)}} </td>
+            <td>{{$t(props.item.name)}}</td>
             <td>{{props.item.value}}</td>
           </template>
         </v-data-table>
@@ -36,7 +36,7 @@
       <v-flex sm12>
         <h3>{{$t('serviceInfo')}}</h3>
       </v-flex>
-      <v-flex lg12 >
+      <v-flex lg12>
         <v-tabs
           class="elevation-1">
           <v-tab>
@@ -54,8 +54,8 @@
               <template slot="items" slot-scope="props">
                 <td>{{getIp(props.item.address)}}</td>
                 <td>{{getPort(props.item.address)}}</td>
-                <td></td>
-                <td></td>
+                <td>{{props.item.weight}}</td>
+                <td>{{props.item.enabled}}</td>
                 <td>
                   <v-tooltip top>
                     <v-btn
@@ -66,15 +66,22 @@
                       @mouseout="setoutHint(props.item)"
                       @click="toCopyText(props.item.url)"
                     >
-                        {{$t(props.item.hint)}}
+                      {{$t(props.item.hint)}}
                     </v-btn>
                     <span>{{props.item.url}}</span>
                   </v-tooltip>
+                  <v-btn
+                    class="tiny"
+                    color='success'
+                    :href='getProviderHref(props.item.service,props.item.registry,props.item.hash)'
+                  >
+                    {{ $t('detail') }}
+                  </v-btn>
                 </td>
               </template>
             </v-data-table>
           </v-tab-item>
-          <v-tab-item >
+          <v-tab-item>
             <v-data-table
               class="elevation-1"
               :headers="detailHeaders.consumers"
@@ -84,36 +91,45 @@
                 <td>{{getIp(props.item.address)}}</td>
                 <td>{{getPort(props.item.address)}}</td>
                 <td>{{props.item.application}}</td>
+                <td>
+                  <v-btn
+                    class="tiny"
+                    color='success'
+                    :href='getConsumerHref(props.item.service,props.item.registry,props.item.hash)'
+                  >
+                    {{ $t('detail') }}
+                  </v-btn>
+                </td>
               </template>
             </v-data-table>
           </v-tab-item>
         </v-tabs>
       </v-flex>
-      <v-flex sm12>
-        <h3>{{$t('metaData')}}</h3>
-      </v-flex>
-      <v-flex lg12>
-        <v-data-table
-          class="elevation-1"
-          :headers="metaHeaders"
-          :items="methodMetaData">
-          <template slot="items" slot-scope="props">
-            <td>{{props.item.name}}</td>
-            <td>
-              <v-chip v-for="(type, index) in props.item.parameterTypes" :key="type.id" label>{{type}}</v-chip>
-            </td>
-            <td>
-              <v-chip label>{{props.item.returnType}}</v-chip>
-            </td>
-          </template>
-          <template slot="no-data">
-            <v-alert :value="true" color="warning" icon="warning">
-              {{$t('noMetadataHint')}}
-              <a :href="$t('configAddress')" target="_blank">{{$t('here')}}</a>
-            </v-alert>
-          </template>
-        </v-data-table>
-      </v-flex>
+<!--      <v-flex sm12>-->
+<!--        <h3>{{$t('metaData')}}</h3>-->
+<!--      </v-flex>-->
+<!--      <v-flex lg12>-->
+<!--        <v-data-table-->
+<!--          class="elevation-1"-->
+<!--          :headers="metaHeaders"-->
+<!--          :items="methodMetaData">-->
+<!--          <template slot="items" slot-scope="props">-->
+<!--            <td>{{props.item.name}}</td>-->
+<!--            <td>-->
+<!--              <v-chip v-for="(type, index) in props.item.parameterTypes" :key="type.id" label>{{type}}</v-chip>-->
+<!--            </td>-->
+<!--            <td>-->
+<!--              <v-chip label>{{props.item.returnType}}</v-chip>-->
+<!--            </td>-->
+<!--          </template>-->
+<!--          <template slot="no-data">-->
+<!--            <v-alert :value="true" color="warning" icon="warning">-->
+<!--              {{$t('noMetadataHint')}}-->
+<!--              <a :href="$t('configAddress')" target="_blank">{{$t('here')}}</a>-->
+<!--            </v-alert>-->
+<!--          </template>-->
+<!--        </v-data-table>-->
+<!--      </v-flex>-->
     </v-layout>
   </v-container>
 </template>
@@ -166,12 +182,12 @@
               value: 'port'
             },
             {
-              text: this.$t('timeout'),
-              value: 'timeout'
+              text: this.$t('weight'),
+              value: 'weight'
             },
             {
-              text: this.$t('serialization'),
-              value: 'serial'
+              text: this.$t('status'),
+              value: 'status'
             },
             {
               text: this.$t('operation'),
@@ -191,22 +207,42 @@
             {
               text: this.$t('appName'),
               value: 'appName'
+            },
+            {
+              text: this.$t('operation'),
+              value: 'operate'
             }
           ]
         }
       },
+      getProviderHref: function (service, registry, hash) {
+        let query = 'service=' + service.replace('/', '*')
+        if (registry != null) {
+          query = query + '&registry=' + registry
+        }
+        query = query + '&hash=' + hash
+        return '#/providerDetail?' + query
+      },
+      getConsumerHref: function (service, registry, hash) {
+        let query = 'service=' + service.replace('/', '*')
+        if (registry != null) {
+          query = query + '&registry=' + registry
+        }
+        query = query + '&hash=' + hash
+        return '#/consumerDetail?' + query
+      },
       detail: function (service) {
         this.$axios.get('/service/' + service)
-            .then(response => {
-              this.providerDetails = response.data.providers
-              for (let i = 0; i < this.providerDetails.length; i++) {
-                this.$set(this.providerDetails[i], 'hint', 'url')
-              }
-              this.consumerDetails = response.data.consumers
-              if (response.data.metadata !== null) {
-                this.methodMetaData = response.data.metadata.methods
-              }
-            })
+          .then(response => {
+            this.providerDetails = response.data.providers
+            for (let i = 0; i < this.providerDetails.length; i++) {
+              this.$set(this.providerDetails[i], 'hint', 'url')
+            }
+            this.consumerDetails = response.data.consumers
+            if (response.data.metadata !== null) {
+              this.methodMetaData = response.data.metadata.methods
+            }
+          })
       },
       getIp: function (address) {
         return address.split(':')[0]
@@ -217,7 +253,8 @@
       toCopyText (text) {
         this.$copyText(text).then(() => {
           this.$notify.success(this.$t('copySuccessfully'))
-        }, () => {})
+        }, () => {
+        })
       }
     },
     computed: {
@@ -239,7 +276,8 @@
         'service': '',
         'app': '',
         'group': '',
-        'version': ''
+        'version': '',
+        'registry': ''
       }
       var vm = this
       Object.keys(query).forEach(function (key) {
@@ -254,7 +292,9 @@
       if (meta['version'] !== '') {
         dataId = dataId + ':' + meta['version']
       }
-
+      if (meta['registry'] !== '') {
+        dataId = dataId + '@' + meta['registry']
+      }
       if (dataId !== '') {
         this.detail(dataId)
         Object.keys(meta).forEach(function (key) {

@@ -17,17 +17,22 @@
 
 package org.apache.dubbo.admin;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(exclude={
-		DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class
-})
+@SpringBootApplication(exclude = {HibernateJpaAutoConfiguration.class})
+@MapperScan("org.apache.dubbo.admin.dao")
+@ServletComponentScan("org.apache.dubbo.admin.filter")
+//@ImportResource("classpath:spring-esjob.xml")
+@EnableScheduling
 public class DubboAdminApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(DubboAdminApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(DubboAdminApplication.class, args);
+    }
 }

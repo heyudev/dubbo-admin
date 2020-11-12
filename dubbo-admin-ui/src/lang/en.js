@@ -27,6 +27,7 @@ export default {
   serviceTest: 'Service Test',
   serviceMock: 'Service Mock',
   metrics: 'Metrics',
+  monitor: 'Monitor',
   group: 'Group',
   serviceInfo: 'Service Info',
   providers: 'Providers',
@@ -42,6 +43,7 @@ export default {
   serialization: 'serialization',
   appName: 'Application Name',
   serviceName: 'Service Name',
+  registry: 'Registry',
   operation: 'Operation',
   searchResult: 'Search Result',
   search: 'Search',
@@ -127,12 +129,6 @@ export default {
   scope: 'Scope',
   name: 'Name',
   warnDeleteConfig: ' Are you sure to Delete Dubbo Config: ',
-  warnDeleteRouteRule: 'Are you sure to Delete routing rule',
-  warnDeleteDynamicConfig: 'Are you sure to Delete dynamic config',
-  warnDeleteBalancing: 'Are you sure to Delete load balancing',
-  warnDeleteAccessControl: 'Are you sure to Delete access control',
-  warnDeleteTagRule: 'Are you sure to Delete tag rule',
-  warnDeleteWeightAdjust: 'Are you sure to Delete weight adjust',
   configNameHint: "Application name the config belongs to, use 'global'(without quotes) for global config",
   configContent: 'Config Content',
   testMethod: 'Test Method',
@@ -153,5 +149,16 @@ export default {
   methods: 'Methods',
   testModule: {
     searchServiceHint: 'Service ID, org.apache.dubbo.demo.api.DemoService, * for fuzzy search, press Enter to search'
-  }
+  },
+  detailInfo: 'Detail Info',
+  fullUrl: 'Full URL',
+  side: 'Side',
+  pid: 'PID',
+  dubbo: 'Dubbo Version',
+  timestamp: 'Timestamp',
+  retries: 'Retries',
+  username: 'Owner',
+  check: 'Check',
+  router: 'Router',
+  status: 'Status'
 }

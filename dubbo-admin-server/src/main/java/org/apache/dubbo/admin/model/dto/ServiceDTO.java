@@ -21,11 +21,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
-public class ServiceDTO implements Comparable<ServiceDTO>{
+public class ServiceDTO implements Comparable<ServiceDTO> {
     private String service;
     private String appName;
     private String group;
+    private String registry;
     private String version;
+    /**
+     * 是否有按钮权限
+     * 1 有 0 没有
+     */
+    private int permission;
 
     public String getService() {
         return service;
@@ -51,12 +57,28 @@ public class ServiceDTO implements Comparable<ServiceDTO>{
         this.group = group;
     }
 
+    public String getRegistry() {
+        return registry;
+    }
+
+    public void setRegistry(String registry) {
+        this.registry = registry;
+    }
+
     public String getVersion() {
         return version;
     }
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public int getPermission() {
+        return permission;
+    }
+
+    public void setPermission(int permission) {
+        this.permission = permission;
     }
 
     @Override
@@ -69,6 +91,12 @@ public class ServiceDTO implements Comparable<ServiceDTO>{
             }
             if (result == 0) {
                 result = StringUtils.trimToEmpty(version).compareTo(StringUtils.trimToEmpty(o.getVersion()));
+            }
+            if (result == 0) {
+                result = StringUtils.trimToEmpty(registry).compareTo(StringUtils.trimToEmpty(o.getRegistry()));
+            }
+            if (result == 0) {
+                result = Integer.compare(permission, o.getPermission());
             }
         }
         return result;
@@ -84,11 +112,11 @@ public class ServiceDTO implements Comparable<ServiceDTO>{
         }
         ServiceDTO that = (ServiceDTO) o;
         return Objects.equals(service, that.service) && Objects.equals(appName, that.appName) && Objects
-            .equals(group, that.group) && Objects.equals(version, that.version);
+                .equals(group, that.group) && Objects.equals(version, that.version) && Objects.equals(registry, that.registry) && Objects.equals(permission, that.permission);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(service, appName, group, version);
+        return Objects.hash(service, appName, group, version, registry, permission);
     }
 }

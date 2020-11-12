@@ -17,25 +17,42 @@
 package org.apache.dubbo.admin.service;
 
 import org.apache.dubbo.admin.model.domain.Consumer;
+import org.apache.dubbo.admin.model.dto.ConsumerDTO;
 import org.apache.dubbo.metadata.identifier.MetadataIdentifier;
 
 import java.util.List;
 
 /**
  * Query service for consumer info
- *
  */
 public interface ConsumerService {
 
-    List<Consumer> findByService(String serviceName);
+    List<Consumer> findByService(String serviceName,String registryAddress);
 
+    /**
+     * 根据服务和md5获取详细信息
+     *
+     * @param service 服务 group/service:version@registry
+     * @param id      md5
+     * @return
+     */
+    ConsumerDTO findByServiceAndId(String service, String id,String registryAddress);
 
     String getConsumerMetadata(MetadataIdentifier consumerIdentifier);
 
-    List<Consumer> findAll();
+    List<Consumer> findAll(String registryAddress);
 
     /**
      * query for all consumer addresses
      */
-    List<Consumer> findByAddress(String consumerAddress);
+    List<Consumer> findByAddress(String consumerAddress,String registryAddress);
+
+    /**
+     * 根据应用名和注册中心获取consumer
+     *
+     * @param application
+     * @param registry
+     * @return
+     */
+    List<Consumer> findByApplication(String application, String registry);
 }

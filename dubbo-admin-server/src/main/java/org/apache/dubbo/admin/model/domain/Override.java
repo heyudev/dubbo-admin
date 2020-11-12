@@ -190,4 +190,41 @@ public class Override extends Entity {
         return URL.valueOf(sb.toString());
     }
 
+    /**
+     * 兼容历史数据 application=*的情况
+     *
+     * @return
+     */
+    public URL toUrlforUnRegister() {
+        String group = Tool.getGroup(service);
+        String version = Tool.getVersion(service);
+        String interfaze = Tool.getInterface(service);
+        StringBuilder sb = new StringBuilder();
+        sb.append(Constants.OVERRIDE_PROTOCOL);
+        sb.append("://");
+        if (!StringUtils.isBlank(address) && !Constants.ANY_VALUE.equals(address)) {
+            sb.append(address);
+        } else {
+            sb.append(Constants.ANYHOST_VALUE);
+        }
+        sb.append("/");
+        sb.append(interfaze);
+        sb.append("?");
+        Map<String, String> param = StringUtils.parseQueryString(params);
+        param.put(Constants.CATEGORY_KEY, Constants.CONFIGURATORS_CATEGORY);
+        param.put(Constants.ENABLED_KEY, String.valueOf(isEnabled()));
+        param.put(Constants.DYNAMIC_KEY, "false");
+        if (!StringUtils.isBlank(application)) {
+            param.put(Constants.APPLICATION_KEY, application);
+        }
+        if (group != null) {
+            param.put(Constants.GROUP_KEY, group);
+        }
+        if (version != null) {
+            param.put(Constants.VERSION_KEY, version);
+        }
+        sb.append(StringUtils.toQueryString(param));
+        return URL.valueOf(sb.toString());
+    }
+
 }

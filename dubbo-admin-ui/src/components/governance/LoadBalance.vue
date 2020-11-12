@@ -306,9 +306,9 @@
           if (v && v.length >= 4) {
             this.searchLoading = true
             if (this.selected === 0) {
-              this.typeAhead = this.$store.getters.getServiceItems(v)
+              this.typeAhead = this.$store.getters.getMyServiceItems(v)
             } else if (this.selected === 1) {
-              this.typeAhead = this.$store.getters.getAppItems(v)
+              this.typeAhead = this.$store.getters.getMyAppItems(v)
             }
             this.searchLoading = false
             this.timerID = null
@@ -387,12 +387,12 @@
                 if (response.status === 200) {
                   if (vm.service) {
                     vm.selected = 0
+                    vm.search(vm.service, true)
                     vm.filter = vm.service
-                    vm.search(true)
                   } else {
                     vm.selected = 1
+                    vm.search(vm.application, true)
                     vm.filter = vm.application
-                    vm.search(true)
                   }
                   this.closeDialog()
                   this.$notify.success('Update success')
@@ -405,12 +405,12 @@
               if (response.status === 201) {
                 if (vm.service) {
                   vm.selected = 0
+                  vm.search(vm.service, true)
                   vm.filter = vm.service
-                  vm.search(true)
                 } else {
                   vm.selected = 1
+                  vm.search(vm.application, true)
                   vm.filter = vm.application
-                  vm.search(true)
                 }
                 this.closeDialog()
                 this.$notify.success('Create success')
@@ -446,7 +446,7 @@
               })
             break
           case 'delete':
-            this.openWarn('warnDeleteBalancing', 'service: ' + itemId)
+            this.openWarn(' Are you sure to Delete Routing Rule', 'service: ' + itemId)
             this.warnStatus.operation = 'delete'
             this.warnStatus.id = itemId
         }
@@ -471,7 +471,7 @@
           .then(response => {
             if (response.status === 200) {
               this.warn = false
-              this.search(false)
+              this.search(this.filter, false)
               this.$notify.success('Delete success')
             }
           })
@@ -510,8 +510,8 @@
     mounted: function () {
       this.setServiceHeaders()
       this.setAppHeaders()
-      this.$store.dispatch('loadServiceItems')
-      this.$store.dispatch('loadAppItems')
+      this.$store.dispatch('loadMyServiceItems')
+      this.$store.dispatch('loadMyAppItems')
       this.ruleText = this.template
       let query = this.$route.query
       let filter = null

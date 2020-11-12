@@ -25,7 +25,9 @@ export const store = new Vuex.Store({
     appTitle: 'Dubbo Admin',
     area: null,
     serviceItems: null,
-    appItems: null
+    appItems: null,
+    myServiceItems: null,
+    myAppItems: null
   },
   mutations: {
     setArea (state, area) {
@@ -36,6 +38,12 @@ export const store = new Vuex.Store({
     },
     setAppItems (state, appItems) {
       state.appItems = appItems
+    },
+    setMyServiceItems (state, myServiceItems) {
+      state.myServiceItems = myServiceItems
+    },
+    setMyAppItems (state, myAppItems) {
+      state.myAppItems = myAppItems
     }
   },
   actions: {
@@ -65,6 +73,30 @@ export const store = new Vuex.Store({
             commit('setAppItems', appItems)
           }
         })
+    },
+    /**
+     * Load my service items from server, put results into storage.
+     */
+    loadMyServiceItems ({commit}) {
+      Vue.prototype.$axios.get('/myServices')
+        .then(response => {
+          if (response.status === 200) {
+            const myServiceItems = response.data
+            commit('setMyServiceItems', myServiceItems)
+          }
+        })
+    },
+    /**
+     * Load my application items from server, put results into storage.
+     */
+    loadMyAppItems ({commit}) {
+      Vue.prototype.$axios.get('/myApplications')
+        .then(response => {
+          if (response.status === 200) {
+            const myAppItems = response.data
+            commit('setMyAppItems', myAppItems)
+          }
+        })
     }
   },
   getters: {
@@ -81,6 +113,22 @@ export const store = new Vuex.Store({
      */
     getAppItems: (state) => (filter) => {
       return state.appItems.filter(e => {
+        return (e || '').toLowerCase().indexOf((filter || '').toLowerCase()) > -1
+      })
+    },
+    /**
+     * Get my service item arrays with filter
+     */
+    getMyServiceItems: (state) => (filter) => {
+      return state.myServiceItems.filter(e => {
+        return (e || '').toLowerCase().indexOf((filter || '').toLowerCase()) > -1
+      })
+    },
+    /**
+     * Get my application item arrays with filter
+     */
+    getMyAppItems: (state) => (filter) => {
+      return state.myAppItems.filter(e => {
         return (e || '').toLowerCase().indexOf((filter || '').toLowerCase()) > -1
       })
     }

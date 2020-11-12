@@ -48,7 +48,7 @@
             <outputDirectory></outputDirectory>
         </file>
         <file>
-            <source>../dubbo-admin-server/src/main/resources/application.properties</source>
+            <source>../dubbo-admin-server/src/main/resources/application.yml</source>
             <outputDirectory></outputDirectory>
         </file>
         <file>

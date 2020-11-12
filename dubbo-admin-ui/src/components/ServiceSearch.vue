@@ -78,26 +78,28 @@
             >
               <template slot="items" slot-scope="props">
                 <td >{{props.item.service}}</td>
+                <td >{{props.item.registry}}</td>
                 <td>{{props.item.group}}</td>
                 <td>{{props.item.version}}</td>
                 <td>{{props.item.appName}}</td>
+                <td :hidden="true" style="display: none">{{props.item.permission}}</td>
                 <td class="text-xs-center px-0" nowrap>
                   <v-btn
                     class="tiny"
                     color='success'
-                    :href='getHref(props.item.service, props.item.appName, props.item.group, props.item.version)'
+                    :href='getHref(props.item.service, props.item.appName, props.item.group, props.item.version,props.item.registry)'
                   >
                    {{ $t('detail') }}
                   </v-btn>
-                  <v-btn
-                    small
-                    class="tiny"
-                    outline
-                    :href='toTestService(props.item)'
-                  >
-                    {{$t('test')}}
-                  </v-btn>
-                  <v-menu
+<!--                  <v-btn-->
+<!--                    small-->
+<!--                    class="tiny"-->
+<!--                    outline-->
+<!--                    :href='toTestService(props.item)'-->
+<!--                  >-->
+<!--                    {{$t('test')}}-->
+<!--                  </v-btn>-->
+                  <v-menu v-if="props.item.permission === 1"
                   >
                     <v-btn
                       slot="activator"
@@ -222,6 +224,11 @@
             align: 'left'
           },
           {
+            text: this.$t('registry'),
+            value: 'registry',
+            align: 'left'
+          },
+          {
             text: this.$t('group'),
             value: 'group',
             align: 'left'
@@ -264,13 +271,16 @@
           }
         }, 500)
       },
-      getHref: function (service, app, group, version) {
+      getHref: function (service, app, group, version, registry) {
         let query = 'service=' + service + '&app=' + app
         if (group !== null) {
           query = query + '&group=' + group
         }
         if (version != null) {
           query = query + '&version=' + version
+        }
+        if (registry != null) {
+          query = query + '&registry=' + registry
         }
         return '#/serviceDetail?' + query
       },

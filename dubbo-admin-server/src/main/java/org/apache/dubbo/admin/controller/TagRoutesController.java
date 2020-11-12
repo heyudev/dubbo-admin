@@ -17,7 +17,11 @@
 
 package org.apache.dubbo.admin.controller;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.admin.common.CommonResponse;
 import org.apache.dubbo.admin.common.exception.ParamValidationException;
 import org.apache.dubbo.admin.common.exception.ResourceNotFoundException;
 import org.apache.dubbo.admin.common.exception.VersionValidationException;
@@ -37,9 +41,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Deprecated
 @RestController
-@RequestMapping("/api/{env}/rules/route/tag")
+@RequestMapping("/{env}/rules/route/tag")
 public class TagRoutesController {
 
 
@@ -52,88 +56,149 @@ public class TagRoutesController {
         this.providerService = providerService;
     }
 
+    @ApiOperation(value = "创建标签路由配置", notes = "创建标签路由配置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "weightDTO", value = "配置信息", required = true, dataType = "WeightDTO"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public boolean createRule(@RequestBody TagRouteDTO routeDTO, @PathVariable String env) {
+    public CommonResponse createRule(@RequestBody TagRouteDTO routeDTO, @PathVariable String env, @RequestParam String registryAddress) {
         String app = routeDTO.getApplication();
         if (StringUtils.isEmpty(app)) {
             throw new ParamValidationException("app is Empty!");
         }
-        if (providerService.findVersionInApplication(app).equals("2.6")) {
+        if (providerService.findVersionInApplication(app, registryAddress).equals("2.6")) {
             throw new VersionValidationException("dubbo 2.6 does not support tag route");
         }
-        routeService.createTagRoute(routeDTO);
-        return true;
+        routeService.createTagRoute(routeDTO, registryAddress);
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
+        commonResponse.setData(true);
+        return commonResponse;
     }
 
+    @ApiOperation(value = "更新标签路由配置", notes = "更新标签路由配置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "标签路由配置ID", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "weightDTO", value = "配置信息", required = true, dataType = "WeightDTO"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public boolean updateRule(@PathVariable String id, @RequestBody TagRouteDTO routeDTO, @PathVariable String env) {
+    public CommonResponse updateRule(@PathVariable String id, @RequestBody TagRouteDTO routeDTO, @PathVariable String env, @RequestParam String registryAddress) {
 
         id = id.replace(Constants.ANY_VALUE, Constants.PATH_SEPARATOR);
         String app = routeDTO.getApplication();
-        if (providerService.findVersionInApplication(app).equals("2.6")) {
+        if (providerService.findVersionInApplication(app, registryAddress).equals("2.6")) {
             throw new VersionValidationException("dubbo 2.6 does not support tag route");
         }
-        if (routeService.findTagRoute(id) == null) {
+        if (routeService.findTagRoute(id, registryAddress) == null) {
             throw new ResourceNotFoundException("can not find tag route, Id: " + id);
         }
-        routeService.updateTagRoute(routeDTO);
-        return true;
+        routeService.updateTagRoute(routeDTO, registryAddress);
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
+        commonResponse.setData(true);
+        return commonResponse;
 
     }
 
+    @ApiOperation(value = "查询标签路由配置列表", notes = "查询标签路由配置列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "application", value = "应用名", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "service", value = "服务名", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
     @RequestMapping(method = RequestMethod.GET)
-    public List<TagRouteDTO> searchRoutes(@RequestParam String application, @PathVariable String env) {
+    public CommonResponse searchRoutes(@RequestParam String application, @PathVariable String env, @RequestParam String registryAddress) {
         if (StringUtils.isBlank(application)) {
             throw new ParamValidationException("application is required.");
         }
         List<TagRouteDTO> result = new ArrayList<>();
         String version = "2.6";
         try {
-            version = providerService.findVersionInApplication(application);
+            version = providerService.findVersionInApplication(application, registryAddress);
         } catch (ParamValidationException e) {
             //ignore
         }
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
         if (version.equals("2.6")) {
-            return result;
+            commonResponse.setData(result);
+            return commonResponse;
         }
 
-        TagRouteDTO tagRoute = routeService.findTagRoute(application);
+        TagRouteDTO tagRoute = routeService.findTagRoute(application, registryAddress);
         if (tagRoute != null) {
             result.add(tagRoute);
         }
-        return result;
+        commonResponse.setData(result);
+        return commonResponse;
     }
 
+    @ApiOperation(value = "查看标签路由配置信息", notes = "查看标签路由配置信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "标签路由配置ID", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public TagRouteDTO detailRoute(@PathVariable String id, @PathVariable String env) {
+    public CommonResponse detailRoute(@PathVariable String id, @PathVariable String env, @RequestParam String registryAddress) {
         id = id.replace(Constants.ANY_VALUE, Constants.PATH_SEPARATOR);
-        TagRouteDTO tagRoute = routeService.findTagRoute(id);
+        TagRouteDTO tagRoute = routeService.findTagRoute(id, registryAddress);
         if (tagRoute == null) {
             throw new ResourceNotFoundException("Unknown ID!");
         }
-        return tagRoute;
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
+        commonResponse.setData(tagRoute);
+        return commonResponse;
     }
 
+    @ApiOperation(value = "删除标签路由配置", notes = "删除标签路由配置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "标签路由配置ID", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public boolean deleteRoute(@PathVariable String id, @PathVariable String env) {
+    public CommonResponse deleteRoute(@PathVariable String id, @PathVariable String env, @RequestParam String registryAddress) {
         id = id.replace(Constants.ANY_VALUE, Constants.PATH_SEPARATOR);
-        routeService.deleteTagRoute(id);
-        return true;
+        routeService.deleteTagRoute(id, registryAddress);
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
+        commonResponse.setData(true);
+        return commonResponse;
     }
+
+    @ApiOperation(value = "启用标签路由配置", notes = "启用标签路由配置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "标签路由配置ID", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
 
     @RequestMapping(value = "/enable/{id}", method = RequestMethod.PUT)
-    public boolean enableRoute(@PathVariable String id, @PathVariable String env) {
+    public CommonResponse enableRoute(@PathVariable String id, @PathVariable String env, @RequestParam String registryAddress) {
         id = id.replace(Constants.ANY_VALUE, Constants.PATH_SEPARATOR);
-        routeService.enableTagRoute(id);
-        return true;
+        routeService.enableTagRoute(id, registryAddress);
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
+        commonResponse.setData(true);
+        return commonResponse;
     }
 
+    @ApiOperation(value = "禁用标签路由配置", notes = "禁用标签路由配置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "标签路由配置ID", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "env", value = "环境：预留字段，传dev即可", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "registryAddress", value = "注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181", required = true, dataType = "string")
+    })
+
     @RequestMapping(value = "/disable/{id}", method = RequestMethod.PUT)
-    public boolean disableRoute(@PathVariable String id, @PathVariable String env) {
+    public CommonResponse disableRoute(@PathVariable String id, @PathVariable String env, @RequestParam String registryAddress) {
         id = id.replace(Constants.ANY_VALUE, Constants.PATH_SEPARATOR);
-        routeService.disableTagRoute(id);
-        return true;
+        routeService.disableTagRoute(id, registryAddress);
+        CommonResponse commonResponse = CommonResponse.createCommonResponse();
+        commonResponse.setData(true);
+        return commonResponse;
     }
 }
 

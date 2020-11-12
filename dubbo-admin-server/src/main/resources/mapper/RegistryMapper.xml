@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.dubbo.admin.dao.RegistryDao">
+
+    <resultMap id="BaseResultMap" type="org.apache.dubbo.admin.model.domain.Registry">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="regName" column="reg_name" jdbcType="VARCHAR"/>
+        <result property="regAddress" column="reg_address" jdbcType="VARCHAR"/>
+        <result property="regGroup" column="reg_group" jdbcType="VARCHAR"/>
+        <result property="env" column="env" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="auto" column="auto" jdbcType="INTEGER"/>
+        <result property="appCode" column="app_code" jdbcType="VARCHAR"/>
+        <result property="monitor" column="monitor" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,reg_name,reg_address,reg_group,env,state,auto,app_code,monitor
+    </sql>
+
+    <sql id="conditions">
+        <if test=" id != null">and id = #{id,jdbcType=INTEGER}</if>
+        <if test=" regName != null">and reg_name = #{regName,jdbcType=VARCHAR}</if>
+        <if test=" regAddress != null">and reg_address = #{regAddress,jdbcType=VARCHAR}</if>
+        <if test=" regGroup != null">and reg_group = #{regGroup,jdbcType=VARCHAR}</if>
+        <if test=" env != null">and env = #{env,jdbcType=INTEGER}</if>
+        <if test=" state != null">and state = #{state,jdbcType=INTEGER}</if>
+        <if test=" auto != null">and auto = #{auto,jdbcType=INTEGER}</if>
+        <if test=" appCode != null">and app_code = #{appCode,jdbcType=VARCHAR}</if>
+        <if test=" monitor != null">and monitor = #{monitor,jdbcType=VARCHAR}</if>
+    </sql>
+
+    <insert id="insert" parameterType="org.apache.dubbo.admin.model.domain.Registry">
+        insert into registry(reg_name, reg_address, reg_group, env, state, auto, app_code, monitor)
+        values (#{regName}, #{regAddress}, #{regGroup}, #{env}, #{state}, #{auto}, #{appCode}, #{monitor});
+    </insert>
+    <update id="update" parameterType="org.apache.dubbo.admin.model.domain.Registry">
+        update registry
+        <set>
+            <if test="regName != null">reg_name = #{regName,jdbcType=VARCHAR},</if>
+            <if test="regAddress != null ">reg_address = #{regAddress,jdbcType=VARCHAR},</if>
+            <if test="regGroup != null ">reg_group = #{regGroup,jdbcType=VARCHAR},</if>
+            <if test="env != null ">env = #{env,jdbcType=INTEGER},</if>
+            <if test="state != null ">state = #{state,jdbcType=INTEGER},</if>
+            <if test="auto != null ">auto = #{auto,jdbcType=INTEGER},</if>
+            <if test="appCode != null ">app_code = #{appCode,jdbcType=VARCHAR},</if>
+            <if test="monitor != null ">monitor = #{monitor,jdbcType=INTEGER},</if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <update id="updateByAppCode" parameterType="org.apache.dubbo.admin.model.domain.Registry">
+        update registry
+        <set>
+            <if test="regName != null">reg_name = #{regName,jdbcType=VARCHAR},</if>
+            <if test="regAddress != null ">reg_address = #{regAddress,jdbcType=VARCHAR},</if>
+            <if test="regGroup != null ">reg_group = #{regGroup,jdbcType=VARCHAR},</if>
+            <if test="env != null ">env = #{env,jdbcType=INTEGER},</if>
+            <if test="state != null ">state = #{state,jdbcType=INTEGER},</if>
+            <if test="auto != null ">auto = #{auto,jdbcType=INTEGER},</if>
+            <if test="monitor != null ">monitor = #{monitor,jdbcType=INTEGER},</if>
+        </set>
+        where app_code=#{appCode}
+    </update>
+    <delete id="delete" parameterType="org.apache.dubbo.admin.model.domain.Registry">
+        delete
+        from registry
+        where id = #{id}
+    </delete>
+    <select id="getAllRegistry" resultMap="BaseResultMap">
+        select *
+        from registry where state=1
+    </select>
+    <select id="getRegistryList" resultMap="BaseResultMap">
+        select *
+        from registry
+    </select>
+    <select id="getAllRegistryOfAuto" resultMap="BaseResultMap">
+        select *
+        from registry
+        where auto = 1 and state=1
+    </select>
+
+    <select id="getAllRegistryByEnv" resultMap="BaseResultMap" parameterType="integer">
+        select *
+        from registry
+        where env = #{env} and state=1
+    </select>
+    <select id="getAllRegistryOfMonitor" resultMap="BaseResultMap">
+        select *
+        from registry
+        where env = 3
+          and monitor = 1
+    </select>
+    <select id="getAllRegistryOfAutoByEnv" resultMap="BaseResultMap" parameterType="integer">
+        select *
+        from registry
+        where auto = 1 and state=1
+          and env = #{env}
+    </select>
+    <select id="getRegistry" resultMap="BaseResultMap" parameterType="org.apache.dubbo.admin.model.domain.Registry">
+        select *
+        from registry
+        where id = #{id}
+    </select>
+    <select id="getRegistryByAddress" resultMap="BaseResultMap" parameterType="string">
+        select *
+        from registry
+        where reg_address = #{regAddress}
+    </select>
+</mapper>

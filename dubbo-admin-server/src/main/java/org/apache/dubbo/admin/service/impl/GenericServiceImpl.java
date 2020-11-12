@@ -26,20 +26,25 @@ import org.apache.dubbo.rpc.service.GenericService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
+@Deprecated
 @Component
 public class GenericServiceImpl {
     private ApplicationConfig applicationConfig;
-    private final Registry registry;
 
-    public GenericServiceImpl(Registry registry) {
-        this.registry = registry;
+    private List<Registry> registries;
+
+    public GenericServiceImpl(List<Registry> registries) {
+        this.registries = registries;
     }
 
     @PostConstruct
     public void init() {
         RegistryConfig registryConfig = new RegistryConfig();
+        Registry registry = registries.stream().findFirst().get();
         registryConfig.setAddress(registry.getUrl().getProtocol() + "://" + registry.getUrl().getAddress());
+        registryConfig.setGroup(registry.getUrl().getParameter("group"));
 
         applicationConfig = new ApplicationConfig();
         applicationConfig.setName("dubbo-admin");

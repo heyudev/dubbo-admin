@@ -18,12 +18,28 @@ package org.apache.dubbo.admin.model.dto;
 
 /**
  * BaseDTO
- *
+ * <p>
  * For receive ID parameter with @RequestBody
  */
 public abstract class BaseDTO {
+    /**
+     * 应用名
+     */
     private String application;
+    /**
+     * 服务名
+     */
     private String service;
+    /**
+     * 注册中心地址：10.2.39.11:2181 或 10.2.39.11:2181,10.2.39.12:2181,10.2.39.13:2181
+     */
+    private String registryAddress;
+    /**
+     * Provider/Consumer ID
+     * OR
+     * 配置ID
+     */
+    private String id;
 
     public String getApplication() {
         return application;
@@ -39,5 +55,21 @@ public abstract class BaseDTO {
 
     public void setService(String service) {
         this.service = service;
+    }
+
+    public String getRegistryAddress() {
+        return registryAddress;
+    }
+
+    public void setRegistryAddress(String registryAddress) {
+        this.registryAddress = registryAddress;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

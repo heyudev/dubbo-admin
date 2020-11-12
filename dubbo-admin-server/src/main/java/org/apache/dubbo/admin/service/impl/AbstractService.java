@@ -25,6 +25,8 @@ import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.registry.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -33,10 +35,14 @@ public class AbstractService {
     protected static final Logger logger = LoggerFactory.getLogger(AbstractService.class);
 
     @Autowired
-    protected Registry registry;
+    protected List<Registry> registries;
 
-    @Autowired
-    protected GovernanceConfiguration dynamicConfiguration;
+    @Resource
+    protected List<GovernanceConfiguration> dynamicConfigurations;
+
+    @Deprecated
+    @Resource
+    protected GovernanceConfiguration governanceConfiguration;
 
     @Autowired
     protected MetaDataCollector metaDataCollector;
@@ -44,8 +50,31 @@ public class AbstractService {
     @Autowired
     private RegistryServerSync sync;
 
-    public ConcurrentMap<String, ConcurrentMap<String, Map<String, URL>>> getRegistryCache() {
+
+    public ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, Map<String, URL>>>> getRegistryCache() {
         return sync.getRegistryCache();
+    }
+
+    public ConcurrentMap<String, ConcurrentMap<String, Map<String, URL>>> getSingleRegistryCache(String registryAddress) {
+        return getRegistryCache().get(registryAddress);
+    }
+
+    public Registry getRedistry(String registryAddress) {
+        for (Registry registry : registries) {
+            if (registry.getUrl().getAddress().equals(registryAddress)) {
+                return registry;
+            }
+        }
+        return null;
+    }
+
+    public GovernanceConfiguration getDynamicConfiguration(String registryAddress) {
+        for (GovernanceConfiguration governanceConfiguration : dynamicConfigurations) {
+            if (governanceConfiguration.getUrl().getAddress().equals(registryAddress)) {
+                return governanceConfiguration;
+            }
+        }
+        return null;
     }
 
 }

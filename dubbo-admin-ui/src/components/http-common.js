@@ -19,7 +19,16 @@ import Vue from 'vue'
 import HttpStatus from 'http-status'
 
 let instance = axios.create({
-  baseURL: '/api/dev'
+  baseURL: '/dev'
+})
+
+instance.interceptors.request.use((config) => {
+  if (config.url.endsWith('login')) {
+    config.baseURL = '/'
+  } else {
+    config.baseURL = '/dev'
+  }
+  return config
 })
 
 instance.interceptors.response.use((response) => {
@@ -28,7 +37,7 @@ instance.interceptors.response.use((response) => {
   if (error.message.indexOf('Network Error') >= 0) {
     Vue.prototype.$notify.error('Network error, please check your network settings!')
   } else if (error.response.status === HttpStatus.UNAUTHORIZED) {
-    // TODO jump to url
+    window.location.href = '/#/login'
   } else if (error.response.status >= HttpStatus.BAD_REQUEST) {
     Vue.prototype.$notify.error(error.response.data.message)
   }

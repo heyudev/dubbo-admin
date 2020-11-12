@@ -21,6 +21,7 @@ import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.monitor.MetricsService;
 
+@Deprecated
 public class MetrcisCollectServiceImpl {
 
     private ReferenceConfig<MetricsService> referenceConfig;

@@ -17,6 +17,7 @@
 package org.apache.dubbo.admin.service.impl;
 
 import org.apache.dubbo.admin.common.exception.ResourceNotFoundException;
+import org.apache.dubbo.admin.common.exception.SystemException;
 import org.apache.dubbo.admin.common.util.Constants;
 import org.apache.dubbo.admin.common.util.ConvertUtil;
 import org.apache.dubbo.admin.common.util.RouteUtils;
@@ -27,9 +28,11 @@ import org.apache.dubbo.admin.model.dto.ConditionRouteDTO;
 import org.apache.dubbo.admin.model.dto.TagRouteDTO;
 import org.apache.dubbo.admin.model.store.RoutingRule;
 import org.apache.dubbo.admin.model.store.TagRoute;
+import org.apache.dubbo.admin.registry.config.GovernanceConfiguration;
 import org.apache.dubbo.admin.service.RouteService;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.registry.Registry;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -43,6 +46,8 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     public void createConditionRoute(ConditionRouteDTO conditionRoute) {
         String id = ConvertUtil.getIdFromDTO(conditionRoute);
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(conditionRoute.getRegistryAddress());
+        //dynamicConfiguration NPE
         String existConfig = dynamicConfiguration.getConfig(path);
         RoutingRule existRule = null;
         if (existConfig != null) {
@@ -55,15 +60,22 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
         //register2.6
         if (StringUtils.isNotEmpty(conditionRoute.getService())) {
             Route old = convertRouteToOldRoute(conditionRoute);
+            Registry registry = getRedistry(conditionRoute.getRegistryAddress());
+            if (registry == null) {
+                logger.error("get registry failure,registryAddress = " + conditionRoute.getRegistryAddress());
+                return;
+            }
             registry.register(old.toUrl().addParameter(Constants.COMPATIBLE_CONFIG, true));
         }
 
     }
 
     @Override
-    public void updateConditionRoute(ConditionRouteDTO newConditionRoute) {
+    public void updateConditionRoute(ConditionRouteDTO newConditionRoute, String registryAddress) {
         String id = ConvertUtil.getIdFromDTO(newConditionRoute);
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String existConfig = dynamicConfiguration.getConfig(path);
         if (existConfig == null) {
             throw new ResourceNotFoundException("no existing condition route for path: " + path);
@@ -77,17 +89,24 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
         if (StringUtils.isNotEmpty(newConditionRoute.getService())) {
             Route old = convertRouteToOldRoute(oldConditionRoute);
             Route updated = convertRouteToOldRoute(newConditionRoute);
+            Registry registry = getRedistry(registryAddress);
+            if (registry == null) {
+                logger.error("get registry failure,registryAddress = " + registryAddress);
+                return;
+            }
             registry.unregister(old.toUrl().addParameter(Constants.COMPATIBLE_CONFIG, true));
             registry.register(updated.toUrl().addParameter(Constants.COMPATIBLE_CONFIG, true));
         }
     }
 
     @Override
-    public void deleteConditionRoute(String id) {
+    public void deleteConditionRoute(String id, String registryAddress) {
         if (StringUtils.isEmpty(id)) {
             // throw exception
         }
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config == null) {
             //throw exception
@@ -95,8 +114,9 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
         RoutingRule route = YamlParser.loadObject(config, RoutingRule.class);
         List<String> blackWhiteList = RouteUtils.filterBlackWhiteListFromConditions(route.getConditions());
         if (blackWhiteList.size() != 0) {
-           route.setConditions(blackWhiteList);
+            route.setConditions(blackWhiteList);
             dynamicConfiguration.setConfig(path, YamlParser.dumpObject(route));
+            throw new SystemException("blackWhiteList is not null,delete failure");
         } else {
             dynamicConfiguration.deleteConfig(path);
         }
@@ -106,13 +126,20 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
             RoutingRule originRule = YamlParser.loadObject(config, RoutingRule.class);
             ConditionRouteDTO conditionRouteDTO = RouteUtils.createConditionRouteFromRule(originRule);
             Route old = convertRouteToOldRoute(conditionRouteDTO);
+            Registry registry = getRedistry(registryAddress);
+            if (registry == null) {
+                logger.error("get registry failure,registryAddress = " + registryAddress);
+                throw new SystemException("get registry failure,registryAddress = " + registryAddress);
+            }
             registry.unregister(old.toUrl().addParameter(Constants.COMPATIBLE_CONFIG, true));
         }
     }
 
     @Override
-    public void deleteAccess(String id) {
+    public void deleteAccess(String id, String registryAddress) {
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             RoutingRule ruleDTO = YamlParser.loadObject(config, RoutingRule.class);
@@ -123,10 +150,16 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
             } else {
                 ruleDTO.setConditions(conditions);
                 dynamicConfiguration.setConfig(path, YamlParser.dumpObject(ruleDTO));
+                throw new SystemException("conditions is not null,delete failure");
             }
             //2.6
             if (ruleDTO.getScope().equals(Constants.SERVICE) && blackWhiteList.size() > 0) {
                 Route route = RouteUtils.convertBlackWhiteListtoRoute(blackWhiteList, Constants.SERVICE, id);
+                Registry registry = getRedistry(registryAddress);
+                if (registry == null) {
+                    logger.error("get registry failure,registryAddress = " + registryAddress);
+                    throw new SystemException("get registry failure,registryAddress = " + registryAddress);
+                }
                 registry.unregister(route.toUrl());
             }
         }
@@ -136,6 +169,8 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     public void createAccess(AccessDTO accessDTO) {
         String id = ConvertUtil.getIdFromDTO(accessDTO);
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(accessDTO.getRegistryAddress());
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         List<String> blackWhiteList = RouteUtils.convertToBlackWhiteList(accessDTO);
         RoutingRule ruleDTO;
@@ -162,14 +197,21 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
         //for 2.6
         if (ruleDTO.getScope().equals("service")) {
             Route route = RouteUtils.convertAccessDTOtoRoute(accessDTO);
+            Registry registry = getRedistry(accessDTO.getRegistryAddress());
+            if (registry == null) {
+                logger.error("get registry failure,registryAddress = " + accessDTO.getRegistryAddress());
+                return;
+            }
             registry.register(route.toUrl());
         }
 
     }
 
     @Override
-    public AccessDTO findAccess(String id) {
+    public AccessDTO findAccess(String id, String registryAddress) {
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             RoutingRule ruleDTO = YamlParser.loadObject(config, RoutingRule.class);
@@ -184,6 +226,8 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
         String key = ConvertUtil.getIdFromDTO(accessDTO);
         String path = getPath(key, Constants.CONDITION_ROUTE);
         List<String> blackWhiteList = RouteUtils.convertToBlackWhiteList(accessDTO);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(accessDTO.getRegistryAddress());
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         List<String> oldList = null;
         if (config != null) {
@@ -199,14 +243,21 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
         if (StringUtils.isNotEmpty(accessDTO.getService())) {
             Route oldRoute = RouteUtils.convertBlackWhiteListtoRoute(oldList, Constants.SERVICE, key);
             Route newRoute = RouteUtils.convertAccessDTOtoRoute(accessDTO);
+            Registry registry = getRedistry(accessDTO.getRegistryAddress());
+            if (registry == null) {
+                logger.error("get registry failure,registryAddress = " + accessDTO.getRegistryAddress());
+                return;
+            }
             registry.unregister(oldRoute.toUrl());
             registry.register(newRoute.toUrl());
         }
     }
 
     @Override
-    public void enableConditionRoute(String id) {
+    public void enableConditionRoute(String id, String registryAddress) {
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             RoutingRule ruleDTO = YamlParser.loadObject(config, RoutingRule.class);
@@ -214,9 +265,14 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
             if (ruleDTO.getScope().equals(Constants.SERVICE)) {
                 //for2.6
                 URL oldURL = convertRouteToOldRoute(RouteUtils.createConditionRouteFromRule(ruleDTO)).toUrl().addParameter(Constants.COMPATIBLE_CONFIG, true);
+                Registry registry = getRedistry(registryAddress);
+                if (registry == null) {
+                    logger.error("get registry failure,registryAddress = " + registryAddress);
+                    return;
+                }
                 registry.unregister(oldURL);
-                oldURL = oldURL.addParameter("enabled", true);
-                registry.register(oldURL);
+                URL newURL = oldURL.addParameter("enabled", true);
+                registry.register(newURL);
             }
 
             //2.7
@@ -227,18 +283,25 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     }
 
     @Override
-    public void disableConditionRoute(String serviceName) {
+    public void disableConditionRoute(String serviceName, String registryAddress) {
         String path = getPath(serviceName, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             RoutingRule routeRule = YamlParser.loadObject(config, RoutingRule.class);
 
             if (routeRule.getScope().equals(Constants.SERVICE)) {
                 //for 2.6
-                URL oldURL = convertRouteToOldRoute(RouteUtils.createConditionRouteFromRule(routeRule)).toUrl().addParameter(Constants.COMPATIBLE_CONFIG,true);
+                URL oldURL = convertRouteToOldRoute(RouteUtils.createConditionRouteFromRule(routeRule)).toUrl().addParameter(Constants.COMPATIBLE_CONFIG, true);
+                Registry registry = getRedistry(registryAddress);
+                if (registry == null) {
+                    logger.error("get registry failure,registryAddress = " + registryAddress);
+                    return;
+                }
                 registry.unregister(oldURL);
-                oldURL = oldURL.addParameter("enabled", false);
-                registry.register(oldURL);
+                URL newURL = oldURL.addParameter("enabled", false);
+                registry.register(newURL);
             }
 
             //2.7
@@ -249,33 +312,35 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     }
 
     @Override
-    public ConditionRouteDTO findConditionRoute(String id) {
+    public ConditionRouteDTO findConditionRoute(String id, String registryAddress) {
         String path = getPath(id, Constants.CONDITION_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             RoutingRule routingRule = YamlParser.loadObject(config, RoutingRule.class);
             ConditionRouteDTO conditionRouteDTO = RouteUtils.createConditionRouteFromRule(routingRule);
-            String service = conditionRouteDTO.getService();
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(service)) {
-                conditionRouteDTO.setService(service.replace("*", "/"));
-            }
             return conditionRouteDTO;
         }
         return null;
     }
 
     @Override
-    public void createTagRoute(TagRouteDTO tagRoute) {
+    public void createTagRoute(TagRouteDTO tagRoute, String registryAddress) {
         String id = ConvertUtil.getIdFromDTO(tagRoute);
-        String path = getPath(id,Constants.TAG_ROUTE);
+        String path = getPath(id, Constants.TAG_ROUTE);
         TagRoute store = RouteUtils.convertTagroutetoStore(tagRoute);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         dynamicConfiguration.setConfig(path, YamlParser.dumpObject(store));
     }
 
     @Override
-    public void updateTagRoute(TagRouteDTO tagRoute) {
+    public void updateTagRoute(TagRouteDTO tagRoute, String registryAddress) {
         String id = ConvertUtil.getIdFromDTO(tagRoute);
         String path = getPath(id, Constants.TAG_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         if (dynamicConfiguration.getConfig(path) == null) {
             throw new ResourceNotFoundException("can not find tagroute: " + id);
             //throw exception
@@ -286,14 +351,18 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     }
 
     @Override
-    public void deleteTagRoute(String id) {
+    public void deleteTagRoute(String id, String registryAddress) {
         String path = getPath(id, Constants.TAG_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         dynamicConfiguration.deleteConfig(path);
     }
 
     @Override
-    public void enableTagRoute(String id) {
+    public void enableTagRoute(String id, String registryAddress) {
         String path = getPath(id, Constants.TAG_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             TagRoute tagRoute = YamlParser.loadObject(config, TagRoute.class);
@@ -304,8 +373,10 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     }
 
     @Override
-    public void disableTagRoute(String id) {
+    public void disableTagRoute(String id, String registryAddress) {
         String path = getPath(id, Constants.TAG_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             TagRoute tagRoute = YamlParser.loadObject(config, TagRoute.class);
@@ -316,8 +387,10 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     }
 
     @Override
-    public TagRouteDTO findTagRoute(String id) {
+    public TagRouteDTO findTagRoute(String id, String registryAddress) {
         String path = getPath(id, Constants.TAG_ROUTE);
+        GovernanceConfiguration dynamicConfiguration = getDynamicConfiguration(registryAddress);
+        //dynamicConfiguration NPE
         String config = dynamicConfiguration.getConfig(path);
         if (config != null) {
             TagRoute tagRoute = YamlParser.loadObject(config, TagRoute.class);
@@ -327,7 +400,6 @@ public class RouteServiceImpl extends AbstractService implements RouteService {
     }
 
     private String getPath(String key, String type) {
-        key = key.replace("/", "*");
         if (type.equals(Constants.CONDITION_ROUTE)) {
             return prefix + Constants.PATH_SEPARATOR + key + Constants.PATH_SEPARATOR + "condition-router";
         } else {

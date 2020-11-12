@@ -334,9 +334,9 @@ export default {
         if (v && v.length >= 4) {
           this.searchLoading = true
           if (this.selected === 0) {
-            this.typeAhead = this.$store.getters.getServiceItems(v)
+            this.typeAhead = this.$store.getters.getMyServiceItems(v)
           } else if (this.selected === 1) {
-            this.typeAhead = this.$store.getters.getAppItems(v)
+            this.typeAhead = this.$store.getters.getMyAppItems(v)
           }
           this.searchLoading = false
           this.timerID = null
@@ -533,8 +533,8 @@ export default {
   mounted () {
     this.setAppHeaders()
     this.setServiceHeaders()
-    this.$store.dispatch('loadServiceItems')
-    this.$store.dispatch('loadAppItems')
+    this.$store.dispatch('loadMyServiceItems')
+    this.$store.dispatch('loadMyAppItems')
     let query = this.$route.query
     if ('service' in query) {
       this.filter = query['service']

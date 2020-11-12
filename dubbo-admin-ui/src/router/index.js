@@ -19,6 +19,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import ServiceSearch from '@/components/ServiceSearch'
 import ServiceDetail from '@/components/ServiceDetail'
+import ProviderDetail from '@/components/ProviderDetail'
+import ConsumerDetail from '@/components/ConsumerDetail'
 import TestMethod from '@/components/test/TestMethod'
 import RoutingRule from '@/components/governance/RoutingRule'
 import TagRule from '@/components/governance/TagRule'
@@ -30,6 +32,7 @@ import ServiceTest from '@/components/test/ServiceTest'
 import ServiceMock from '@/components/test/ServiceMock'
 import ServiceMetrics from '@/components/metrics/ServiceMetrics'
 import Management from '@/components/Management'
+import Login from '@/components/login/Login'
 
 Vue.use(Router)
 
@@ -44,6 +47,16 @@ export default new Router({
       path: '/serviceDetail',
       name: 'ServiceDetail',
       component: ServiceDetail
+    },
+    {
+      path: '/providerDetail',
+      name: 'ProviderDetail',
+      component: ProviderDetail
+    },
+    {
+      path: '/consumerDetail',
+      name: 'ConsumerDetail',
+      component: ConsumerDetail
     },
     {
       path: '/testMethod',
@@ -70,7 +83,8 @@ export default new Router({
       name: 'LoadBalance',
       component: LoadBalance
     },
-    { path: '/governance/weight',
+    {
+      path: '/governance/weight',
       name: 'WeightAdjust',
       component: WeightAdjust
     },
@@ -98,7 +112,25 @@ export default new Router({
       path: '/management',
       name: 'Management',
       component: Management
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: Login
     }
 
   ]
+// }).beforeEach((to, from, next) => {
+//   if (to.path === '/login') {
+//     console.info('login')
+//     next()
+//   } else {
+//     if (sessionStorage.username) {
+//       console.info('username')
+//       next()
+//     } else {
+//       console.info('redirect')
+//       next({path: '/login'})
+//     }
+//   }
 })

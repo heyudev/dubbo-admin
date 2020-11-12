@@ -115,7 +115,7 @@
         this.timerID = setTimeout(() => {
           if (v && v.length >= 4) {
             this.searchLoading = true
-            this.typeAhead = this.$store.getters.getServiceItems(v)
+            this.typeAhead = this.$store.getters.getMyServiceItems(v)
             this.searchLoading = false
             this.timerID = null
           } else {
@@ -229,7 +229,7 @@
       }
     },
     mounted () {
-      this.$store.dispatch('loadServiceItems')
+      this.$store.dispatch('loadMyServiceItems')
       let query = this.$route.query
       this.filter = query['service']
       if ('group' in query) {

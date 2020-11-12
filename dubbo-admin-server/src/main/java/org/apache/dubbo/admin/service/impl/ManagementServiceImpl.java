@@ -24,40 +24,41 @@ import org.springframework.stereotype.Component;
 
 import static org.apache.dubbo.admin.common.util.Constants.GLOBAL_CONFIG_PATH;
 
+@Deprecated
 @Component
 public class ManagementServiceImpl extends AbstractService implements ManagementService {
     @Override
     public void setConfig(ConfigDTO config) {
         if (Constants.GLOBAL_CONFIG.equals(config.getKey())) {
-            dynamicConfiguration.setConfig(GLOBAL_CONFIG_PATH, config.getConfig());
+            governanceConfiguration.setConfig(GLOBAL_CONFIG_PATH, config.getConfig());
         } else {
-            dynamicConfiguration.setConfig(getPath(config.getKey()), config.getConfig());
+            governanceConfiguration.setConfig(getPath(config.getKey()), config.getConfig());
         }
     }
 
     @Override
     public String getConfig(String key) {
         if (Constants.GLOBAL_CONFIG.equals(key)) {
-            return dynamicConfiguration.getConfig(GLOBAL_CONFIG_PATH);
+            return governanceConfiguration.getConfig(GLOBAL_CONFIG_PATH);
         }
-        return dynamicConfiguration.getConfig(getPath(key));
+        return governanceConfiguration.getConfig(getPath(key));
     }
 
     @Override
     public String getConfigPath(String key) {
         if (Constants.GLOBAL_CONFIG.equals(key)) {
-            return dynamicConfiguration.getPath(GLOBAL_CONFIG_PATH);
+            return governanceConfiguration.getPath(GLOBAL_CONFIG_PATH);
         }
-        return dynamicConfiguration.getPath(getPath(key));
+        return governanceConfiguration.getPath(getPath(key));
     }
 
     @Override
     public boolean updateConfig(ConfigDTO configDTO) {
         String key = configDTO.getKey();
         if (Constants.GLOBAL_CONFIG.equals(key)) {
-            dynamicConfiguration.setConfig(GLOBAL_CONFIG_PATH, configDTO.getConfig());
+            governanceConfiguration.setConfig(GLOBAL_CONFIG_PATH, configDTO.getConfig());
         } else {
-            dynamicConfiguration.setConfig(getPath(key), configDTO.getConfig());
+            governanceConfiguration.setConfig(getPath(key), configDTO.getConfig());
         }
         return true;
     }
@@ -65,9 +66,9 @@ public class ManagementServiceImpl extends AbstractService implements Management
     @Override
     public boolean deleteConfig(String key) {
         if (Constants.GLOBAL_CONFIG.equals(key)) {
-            dynamicConfiguration.deleteConfig(GLOBAL_CONFIG_PATH);
+            governanceConfiguration.deleteConfig(GLOBAL_CONFIG_PATH);
         } else {
-            dynamicConfiguration.deleteConfig(getPath(key));
+            governanceConfiguration.deleteConfig(getPath(key));
         }
         return true;
     }

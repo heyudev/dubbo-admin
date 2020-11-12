@@ -55,6 +55,7 @@ public class Constants {
     public static final String ROUTE_PROTOCOL = "route";
     public static final String APPLICATION_KEY = "application";
     public static final String ENABLED_KEY = "enabled";
+    public static final String DISABLED_KEY = "disabled";
     public static final String RULE_KEY = "rule";
     public static final String ANYHOST_VALUE = "0.0.0.0";
     public static final String OVERRIDE_PROTOCOL = "override";
@@ -74,6 +75,8 @@ public class Constants {
     public static final String METRICS_PORT = "metrics.port";
     public static final String METRICS_PROTOCOL = "metrics.protocol";
     public static final Set<String> CONFIGS = new HashSet<>();
+    public static final String REGISTRY_KEY = "registry";
+    public static final String REGISTRY_ZOOKEEPER_PREFIX = "zookeeper://";
 
     static {
         CONFIGS.add(WEIGHT);

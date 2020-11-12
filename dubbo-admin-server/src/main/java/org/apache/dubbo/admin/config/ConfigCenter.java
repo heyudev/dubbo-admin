@@ -20,7 +20,9 @@ package org.apache.dubbo.admin.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.admin.common.exception.ConfigurationException;
 import org.apache.dubbo.admin.common.util.Constants;
+import org.apache.dubbo.admin.dao.RegistryDao;
 import org.apache.dubbo.admin.registry.config.GovernanceConfiguration;
+import org.apache.dubbo.admin.registry.config.impl.ZookeeperConfiguration;
 import org.apache.dubbo.admin.registry.metadata.MetaDataCollector;
 import org.apache.dubbo.admin.registry.metadata.impl.NoOpMetadataCollector;
 import org.apache.dubbo.common.URL;
@@ -32,15 +34,15 @@ import org.apache.dubbo.registry.RegistryFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
-import java.util.Arrays;
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 
 @Configuration
 public class ConfigCenter {
-
-
 
     //centers in dubbo 2.7
     @Value("${admin.config-center:}")
@@ -63,76 +65,117 @@ public class ConfigCenter {
     private static final Logger logger = LoggerFactory.getLogger(ConfigCenter.class);
 
     private URL configCenterUrl;
-    private URL registryUrl;
     private URL metadataUrl;
 
-
+    @Resource
+    private RegistryDao registryDao;
 
     /*
      * generate dynamic configuration client
      */
     @Bean("governanceConfiguration")
     GovernanceConfiguration getDynamicConfiguration() {
-        GovernanceConfiguration dynamicConfiguration = null;
-
         if (StringUtils.isNotEmpty(configCenter)) {
             configCenterUrl = formUrl(configCenter, group, username, password);
-            dynamicConfiguration = ExtensionLoader.getExtensionLoader(GovernanceConfiguration.class).getExtension(configCenterUrl.getProtocol());
-            dynamicConfiguration.setUrl(configCenterUrl);
-            dynamicConfiguration.init();
-            String config = dynamicConfiguration.getConfig(Constants.GLOBAL_CONFIG_PATH);
-
-            if (StringUtils.isNotEmpty(config)) {
-                Arrays.stream(config.split("\n")).forEach( s -> {
-                    if(s.startsWith(Constants.REGISTRY_ADDRESS)) {
-                        String registryAddress = s.split("=")[1].trim();
-                        registryUrl = formUrl(registryAddress, group, username, password);
-                    } else if (s.startsWith(Constants.METADATA_ADDRESS)) {
-                        metadataUrl = formUrl(s.split("=")[1].trim(), group, username, password);
-                    }
-                });
+            GovernanceConfiguration dynamicConfiguration = getGovernanceConfigurationFromURL(configCenterUrl);
+            if (dynamicConfiguration != null) {
+                return dynamicConfiguration;
             }
         }
-        if (dynamicConfiguration == null) {
-            if (StringUtils.isNotEmpty(registryAddress)) {
-                registryUrl = formUrl(registryAddress, group, username, password);
-                dynamicConfiguration = ExtensionLoader.getExtensionLoader(GovernanceConfiguration.class).getExtension(registryUrl.getProtocol());
-                dynamicConfiguration.setUrl(registryUrl);
-                dynamicConfiguration.init();
-                logger.warn("you are using dubbo.registry.address, which is not recommend, please refer to: https://github.com/apache/incubator-dubbo-admin/wiki/Dubbo-Admin-configuration");
-            } else {
-                throw new ConfigurationException("Either config center or registry address is needed, please refer to https://github.com/apache/incubator-dubbo-admin/wiki/Dubbo-Admin-configuration");
-                //throw exception
-            }
+        if (StringUtils.isNotEmpty(registryAddress)) {
+            URL registryUrl = formUrl(registryAddress, group, username, password);
+            GovernanceConfiguration dynamicConfiguration = getGovernanceConfigurationFromURL(registryUrl);
+            logger.warn("you are using dubbo.registry.address, which is not recommend, please refer to: https://github.com/apache/incubator-dubbo-admin/wiki/Dubbo-Admin-configuration");
+            return dynamicConfiguration;
         }
-        return dynamicConfiguration;
+        throw new ConfigurationException("Either config center or registry address is needed, please refer to https://github.com/apache/incubator-dubbo-admin/wiki/Dubbo-Admin-configuration");
     }
 
-    /*
-     * generate registry client
+    /**
+     * generate dynamic configuration client
+     *
+     * @return
      */
-    @Bean
-    @DependsOn("governanceConfiguration")
-    Registry getRegistry() {
-        Registry registry = null;
-        if (registryUrl == null) {
+    @Bean("dynamicConfigurations")
+    List<GovernanceConfiguration> getDynamicConfigurations() {
+        List<GovernanceConfiguration> dynamicConfigurations = new ArrayList<>();
+        // 动态配置注册中心 从数据库读取
+        List<org.apache.dubbo.admin.model.domain.Registry> list = registryDao.getAllRegistryOfAuto();
+        logger.info("registry list = " + list);
+        if (list != null && !list.isEmpty()) {
+            for (org.apache.dubbo.admin.model.domain.Registry registry : list) {
+                URL registryUrl = formUrl(Constants.REGISTRY_ZOOKEEPER_PREFIX + registry.getRegAddress(), registry.getRegGroup(), registry.getUsername(), registry.getPassword());
+                GovernanceConfiguration dynamicConfiguration = getZookeeperConfigurationFromURL(registryUrl);
+                dynamicConfiguration.setUrl(registryUrl);
+                dynamicConfiguration.init();
+                if (dynamicConfiguration != null) {
+                    dynamicConfigurations.add(dynamicConfiguration);
+                }
+            }
+        }
+        return dynamicConfigurations;
+    }
+
+    /**
+     * generate registry client
+     *
+     * @return
+     */
+    @Bean("registries")
+    List<Registry> getRegistries(GovernanceConfiguration governanceConfiguration) {
+        List<Registry> registries = new LinkedList<>();
+        RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getAdaptiveExtension();
+
+//        String config = governanceConfiguration.getConfig(Constants.GLOBAL_CONFIG_PATH);
+//
+//        if (StringUtils.isNotEmpty(config)) {
+//            for (String s : config.split("\n")) {
+//                if (s.startsWith(Constants.REGISTRY_ADDRESS)) {
+//                    String registryAddress = s.split("=")[1].trim();
+//                    URL registryUrl = formUrl(registryAddress, group, username, password);
+//                    registries.add(registryFactory.getRegistry(registryUrl));
+//                }
+//            }
+//        }
+
+        if (registries.isEmpty()) {
             if (StringUtils.isBlank(registryAddress)) {
                 throw new ConfigurationException("Either config center or registry address is needed, please refer to https://github.com/apache/incubator-dubbo-admin/wiki/Dubbo-Admin-configuration");
             }
-            registryUrl = formUrl(registryAddress, group, username, password);
+            URL registryUrl = formUrl(registryAddress, group, username, password);
+            registries.add(registryFactory.getRegistry(registryUrl));
         }
-        RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getAdaptiveExtension();
-        registry = registryFactory.getRegistry(registryUrl);
-        return registry;
+
+        // 动态配置注册中心 从数据库读取
+        List<org.apache.dubbo.admin.model.domain.Registry> list = registryDao.getAllRegistryOfAuto();
+        logger.info("registry list = " + list);
+        if (list != null && !list.isEmpty()) {
+            for (org.apache.dubbo.admin.model.domain.Registry registry : list) {
+                URL registryUrl = formUrl(Constants.REGISTRY_ZOOKEEPER_PREFIX + registry.getRegAddress(), registry.getRegGroup(), registry.getUsername(), registry.getPassword());
+                registries.add(registryFactory.getRegistry(registryUrl));
+            }
+        }
+
+        return registries;
     }
 
     /*
      * generate metadata client
      */
     @Bean
-    @DependsOn("governanceConfiguration")
-    MetaDataCollector getMetadataCollector() {
+    MetaDataCollector getMetadataCollector(GovernanceConfiguration governanceConfiguration) {
         MetaDataCollector metaDataCollector = new NoOpMetadataCollector();
+
+//        String config = governanceConfiguration.getConfig(Constants.GLOBAL_CONFIG_PATH);
+//
+//        if (StringUtils.isNotEmpty(config)) {
+//            for (String s : config.split("\n")) {
+//                if (s.startsWith(Constants.METADATA_ADDRESS)) {
+//                    metadataUrl = formUrl(s.split("=")[1].trim(), group, username, password);
+//                }
+//            }
+//        }
+
         if (metadataUrl == null) {
             if (StringUtils.isNotEmpty(metadataAddress)) {
                 metadataUrl = formUrl(metadataAddress, group, username, password);
@@ -148,7 +191,7 @@ public class ConfigCenter {
         return metaDataCollector;
     }
 
-    private URL formUrl(String config, String group, String username, String password) {
+    public static URL formUrl(String config, String group, String username, String password) {
         URL url = URL.valueOf(config);
         if (StringUtils.isNotEmpty(group)) {
             url = url.addParameter(Constants.GROUP_KEY, group);
@@ -160,5 +203,20 @@ public class ConfigCenter {
             url = url.setPassword(password);
         }
         return url;
+    }
+
+    private GovernanceConfiguration getGovernanceConfigurationFromURL(URL url) {
+        GovernanceConfiguration dynamicConfiguration =
+                ExtensionLoader.getExtensionLoader(GovernanceConfiguration.class).getExtension(url.getProtocol());
+        dynamicConfiguration.setUrl(url);
+        dynamicConfiguration.init();
+        return dynamicConfiguration;
+    }
+
+    private GovernanceConfiguration getZookeeperConfigurationFromURL(URL url) {
+        GovernanceConfiguration dynamicConfiguration = new ZookeeperConfiguration();
+        dynamicConfiguration.setUrl(url);
+        dynamicConfiguration.init();
+        return dynamicConfiguration;
     }
 }

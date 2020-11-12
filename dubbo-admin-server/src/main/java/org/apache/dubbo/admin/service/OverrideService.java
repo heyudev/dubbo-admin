@@ -16,9 +16,12 @@
  */
 package org.apache.dubbo.admin.service;
 
+import org.apache.dubbo.admin.model.domain.Override;
 import org.apache.dubbo.admin.model.dto.BalancingDTO;
 import org.apache.dubbo.admin.model.dto.DynamicConfigDTO;
 import org.apache.dubbo.admin.model.dto.WeightDTO;
+
+import java.util.List;
 
 public interface OverrideService {
 
@@ -26,28 +29,53 @@ public interface OverrideService {
 
     void updateOverride(DynamicConfigDTO override);
 
-    void deleteOverride(String id);
+    void deleteOverride(String id, String registryAddress);
 
-    void enableOverride(String id);
+    void enableOverride(String id, String registryAddress);
 
-    void disableOverride(String id);
+    void disableOverride(String id, String registryAddress);
 
-    DynamicConfigDTO findOverride(String id);
+    DynamicConfigDTO findOverride(String id, String registryAddress);
 
     void saveWeight(WeightDTO weightDTO);
 
     void updateWeight(WeightDTO weightDTO);
 
-    void deleteWeight(String id);
+    void deleteWeight(String id, String registryAddress);
 
-    WeightDTO findWeight(String id);
+    WeightDTO findWeight(String id, String registryAddress);
 
     void saveBalance(BalancingDTO balancingDTO);
 
-    void updateBalance(BalancingDTO balancingDTO);
+    void updateBalance(BalancingDTO balancingDTO, String registryAddress);
 
-    void deleteBalance(String id);
+    void deleteBalance(String id, String registryAddress);
 
-    BalancingDTO findBalance(String id);
+    BalancingDTO findBalance(String id, String registryAddress);
+
+    List<Override> findByServiceAndAddress(String service, String address, String registryAddress);
+
+    /**
+     * dubbo 2.6
+     *
+     * @param override
+     * @param registryAddress
+     */
+    void saveOverride6(Override override, String registryAddress);
+
+    /**
+     * dubbo 2.6
+     *
+     * @param hash
+     * @param registryAddress
+     */
+    void deleteOverride6(String hash, String registryAddress);
+
+    /**
+     * dubbo 2.6
+     * @param override
+     * @param registryAddress
+     */
+    void updateOverride6(Override override, String registryAddress);
 
 }

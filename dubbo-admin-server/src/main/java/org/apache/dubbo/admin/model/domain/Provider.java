@@ -26,7 +26,6 @@ import java.util.Map;
 
 /**
  * Provider
- *
  */
 public class Provider extends Entity {
 
@@ -59,6 +58,15 @@ public class Provider extends Entity {
     private Override override;
 
     private List<Override> overrides;
+    /**
+     * 状态
+     */
+    private String status;
+    /**
+     * 是否有按钮权限
+     * 1 有 0 没有
+     */
+    private int permission;
 
     public Provider() {
     }
@@ -179,6 +187,22 @@ public class Provider extends Entity {
 
     public void setOverrides(List<Override> overrides) {
         this.overrides = overrides;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getPermission() {
+        return permission;
+    }
+
+    public void setPermission(int permission) {
+        this.permission = permission;
     }
 
     public URL toUrl() {
